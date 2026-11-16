@@ -1,0 +1,35 @@
+name: Daily Job Scraper
+
+on:
+  workflow_dispatch: # Bunu elle test etmek için tutabilirsin
+  schedule:
+    - cron: '0 6 * * *'  # UTC saatine göre 06:00 (Türkiye saati ile sabah 09:00)
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 🔴 BU KISMI EKLEMEK ZORUNDASIN
+      - name: Install Playwright Browsers
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run Script
+        # GitHub Secrets'taki değerleri Python'ın görebileceği Env ortamına aktarıyoruz
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py
